@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order - ShopEasy E-Commerce | Order Tracking</title>
+    <meta name="description"
+        content="Track your ShopEasy e-commerce orders in real-time. Get shipping updates and delivery status.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        .track-container {
+            max-width: 900px;
+            margin: 100px auto 40px;
+            padding: 20px;
+        }
+
+        .track-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .track-form h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .track-btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .track-btn:hover {
+            background: #0056b3;
+        }
+
+        .order-tracking {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tracking-step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tracking-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .step-icon.completed {
+            background: #28a745;
+        }
+
+        .step-content h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .step-content p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .step-date {
+            color: #999;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>ShopEasy</h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="index.html#products" class="nav-link">Products</a>
+                <a href="features.html" class="nav-link">Features</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+                <a href="faq.html" class="nav-link">FAQ</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+            </div>
+            <div class="nav-icons">
+                <a href="#" class="icon-btn" id="cart-btn"><i class="fas fa-shopping-cart"></i><span class="badge"
+                        id="cart-count">0</span></a>
+            </div>
+            <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+        </div>
+    </nav>
+
+    <section class="page-header">
+        <h1>Track Your Order</h1>
+        <p>Real-time Order Tracking & Shipping Updates</p>
+    </section>
+
+    <div class="track-container">
+        <div class="track-form">
+            <h2><i class="fas fa-search"></i> Track Order</h2>
+            <div class="form-group">
+                <label for="order-id">Order ID *</label>
+                <input type="text" id="order-id" placeholder="Enter your order ID (e.g., #ORD123456)" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" placeholder="Enter your email address" required>
+            </div>
+            <button class="track-btn" onclick="trackOrder()"><i class="fas fa-search"></i> Track Order</button>
+        </div>
+
+        <div class="order-tracking" id="tracking-result" style="display: none;">
+            <h2><i class="fas fa-box"></i> Order Status</h2>
+            <div id="tracking-content"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>ShopEasy</h3>
+                <p>Your trusted e-commerce platform - WooCommerce powered online shopping solution</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#products">Products</a></li>
+                    <li><a href="features.html">Features</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>E-Commerce</h3>
+                <ul>
+                    <li><a href="profile.html">My Account</a></li>
+                    <li><a href="track-order.html">Track Order</a></li>
+                    <li><a href="returns.html">Returns</a></li>
+                    <li><a href="shipping.html">Shipping</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p><i class="fas fa-phone"></i> +1 234 567 8900</p>
+                <p><i class="fas fa-envelope"></i> support@shopeasy.com</p>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Shopping Street, NY 10001</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 ShopEasy - E-Commerce | WooCommerce | Online Shopping. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        function trackOrder() {
+            const orderId = document.getElementById('order-id').value;
+            const email = document.getElementById('email').value;
+
+            if (!orderId || !email) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const trackingSteps = [
+                { status: 'Order Confirmed', date: 'Jan 15, 2024 10:30 AM', completed: true },
+                { status: 'Processing', date: 'Jan 15, 2024 2:45 PM', completed: true },
+                { status: 'Shipped', date: 'Jan 16, 2024 9:00 AM', completed: true },
+                { status: 'In Transit', date: 'Jan 17, 2024 3:20 PM', completed: true },
+                { status: 'Out for Delivery', date: 'Jan 18, 2024 8:00 AM', completed: true },
+                { status: 'Delivered', date: 'Jan 18, 2024 5:30 PM', completed: false }
+            ];
+
+            let html = `<div style="margin-bottom: 20px;"><strong>Order ID:</strong> ${orderId}</div>`;
+            trackingSteps.forEach(step => {
+                html += `
+                    <div class="tracking-step">
+                        <div class="step-icon ${step.completed ? 'completed' : ''}">
+                            <i class="fas ${step.completed ? 'fa-check' : 'fa-clock'}"></i>
+                        </div>
+                        <div class="step-content">
+                            <h3>${step.status}</h3>
+                            <p>Expected delivery: Jan 18, 2024</p>
+                            <div class="step-date">${step.date}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('tracking-content').innerHTML = html;
+            document.getElementById('tracking-result').style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

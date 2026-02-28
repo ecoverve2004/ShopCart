@@ -1,523 +1,535 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
+const jwt = require('jsonwebtoken');
 
-dotenv.config();
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'shopeasy-secret-key-2024';
 
+// Data file paths
+const PRODUCTS_FILE = path.join(__dirname, 'data', 'products.json');
+const USERS_FILE = path.join(__dirname, 'data', 'users.json');
+const ORDERS_FILE = path.join(__dirname, 'data', 'orders.json');
+
+// Helper functions for data management
+const readData = (filePath) => {
+    try {
+        const data = fs.readFileSync(filePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error(`Error reading ${filePath}:`, error);
+        return [];
+    }
+};
+
+const writeData = (filePath, data) => {
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
+    } catch (error) {
+        console.error(`Error writing ${filePath}:`, error);
+    }
+};
+
+// Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-const isValidEmail = (email) => /^\S+@\S+\.\S+$/.test(email);
-const roundMoney = (value) => Math.round(value * 100) / 100;
+// Serve static files from frontend directory - more specific routes first
+app.use('/css', express.static(path.join(__dirname, '..', 'frontend', 'css')));
+app.use('/js', express.static(path.join(__dirname, '..', 'frontend', 'js')));
+app.use('/assets', express.static(path.join(__dirname, '..', 'frontend', 'assets')));
 
-// In-memory store so the whole site works without external setup.
-let products = [
-  {
-    id: 1,
-    name: 'AeroPulse Wireless Headphones',
-    description: 'Noise-canceling over-ear headphones with 40-hour battery life.',
-    price: 189.99,
-    image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=1000&q=80',
-    category: 'Audio',
-    rating: 4.7,
-    reviews: 186,
-    stock: 23,
-    featured: true,
-    createdAt: '2026-01-03T09:30:00.000Z'
-  },
-  {
-    id: 2,
-    name: 'NovaFit Smart Watch',
-    description: 'Track sleep, heart rate, workouts, and notifications all day.',
-    price: 249.99,
-    image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=1000&q=80',
-    category: 'Wearables',
-    rating: 4.8,
-    reviews: 241,
-    stock: 15,
-    featured: true,
-    createdAt: '2026-01-08T12:05:00.000Z'
-  },
-  {
-    id: 3,
-    name: 'Vector Mechanical Keyboard',
-    description: 'Tactile switches, hot-swappable keys, and compact layout.',
-    price: 129.5,
-    image: 'https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?auto=format&fit=crop&w=1000&q=80',
-    category: 'Accessories',
-    rating: 4.6,
-    reviews: 172,
-    stock: 31,
-    featured: false,
-    createdAt: '2026-01-11T17:12:00.000Z'
-  },
-  {
-    id: 4,
-    name: 'Flux 4K Webcam',
-    description: 'Ultra-wide field of view and low-light auto correction.',
-    price: 154.0,
-    image: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=1000&q=80',
-    category: 'Video',
-    rating: 4.4,
-    reviews: 98,
-    stock: 19,
-    featured: true,
-    createdAt: '2026-01-14T08:40:00.000Z'
-  },
-  {
-    id: 5,
-    name: 'Orbit USB-C Hub',
-    description: '7-in-1 aluminum hub with HDMI, SD card, and fast charging.',
-    price: 59.99,
-    image: 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1000&q=80',
-    category: 'Accessories',
-    rating: 4.3,
-    reviews: 212,
-    stock: 42,
-    featured: false,
-    createdAt: '2026-01-17T14:55:00.000Z'
-  },
-  {
-    id: 6,
-    name: 'PixelBeam Projector',
-    description: 'Portable mini projector with native 1080p resolution.',
-    price: 319.0,
-    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=1000&q=80',
-    category: 'Video',
-    rating: 4.5,
-    reviews: 76,
-    stock: 9,
-    featured: false,
-    createdAt: '2026-01-22T11:20:00.000Z'
-  },
-  {
-    id: 7,
-    name: 'EchoPods Pro',
-    description: 'True wireless earbuds with adaptive EQ and ANC.',
-    price: 139.99,
-    image: 'https://images.unsplash.com/photo-1606220838315-056192d5e927?auto=format&fit=crop&w=1000&q=80',
-    category: 'Audio',
-    rating: 4.7,
-    reviews: 267,
-    stock: 28,
-    featured: true,
-    createdAt: '2026-01-25T16:10:00.000Z'
-  },
-  {
-    id: 8,
-    name: 'Glide Ergonomic Mouse',
-    description: 'Vertical ergonomic design with programmable side buttons.',
-    price: 69.0,
-    image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=1000&q=80',
-    category: 'Accessories',
-    rating: 4.2,
-    reviews: 124,
-    stock: 35,
-    featured: false,
-    createdAt: '2026-01-27T10:47:00.000Z'
-  },
-  {
-    id: 9,
-    name: 'ZenDesk Lamp',
-    description: 'Dimmable desk light with wireless charging base.',
-    price: 84.75,
-    image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1000&q=80',
-    category: 'Home Office',
-    rating: 4.6,
-    reviews: 88,
-    stock: 26,
-    featured: false,
-    createdAt: '2026-02-01T13:34:00.000Z'
-  },
-  {
-    id: 10,
-    name: 'Studio Mic X1',
-    description: 'USB condenser microphone for podcasts and streaming.',
-    price: 119.99,
-    image: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=1000&q=80',
-    category: 'Audio',
-    rating: 4.8,
-    reviews: 151,
-    stock: 18,
-    featured: true,
-    createdAt: '2026-02-04T07:15:00.000Z'
-  }
-];
+// Serve admin static files
+app.use('/admin/css', express.static(path.join(__dirname, '..', 'frontend', 'css')));
+app.use('/admin/js', express.static(path.join(__dirname, '..', 'frontend', 'js')));
 
-const featuredCollections = [
-  {
-    id: 1,
-    title: 'Creator Starter Kits',
-    subtitle: 'Audio + video bundles for students and creators',
-    image: 'https://images.unsplash.com/photo-1516724562728-afc824a36e84?auto=format&fit=crop&w=1400&q=80'
-  },
-  {
-    id: 2,
-    title: 'Back to Campus',
-    subtitle: 'Desk setups built for focus and productivity',
-    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1400&q=80'
-  },
-  {
-    id: 3,
-    title: 'New This Week',
-    subtitle: 'Fresh arrivals from top-performing categories',
-    image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?auto=format&fit=crop&w=1400&q=80'
-  }
-];
+// API Routes
+app.use('/api', require('cors')());
 
-let subscribers = [
-  { id: 1, email: 'alex@campusmail.com', createdAt: '2026-02-08T09:25:00.000Z' },
-  { id: 2, email: 'nina@school.edu', createdAt: '2026-02-10T18:45:00.000Z' },
-  { id: 3, email: 'jamie@learnhub.net', createdAt: '2026-02-13T13:10:00.000Z' }
-];
-
-let messages = [
-  {
-    id: 1,
-    name: 'Mia Johnson',
-    email: 'mia@example.com',
-    phone: '+1 (555) 821-9074',
-    subject: 'Bulk order for class',
-    message: 'Can you share pricing for 18 headsets for our media lab?',
-    status: 'new',
-    createdAt: '2026-02-15T11:20:00.000Z'
-  },
-  {
-    id: 2,
-    name: 'Ethan Patel',
-    email: 'ethan@example.com',
-    phone: '',
-    subject: 'Shipping time',
-    message: 'How long does delivery take to New Jersey?',
-    status: 'resolved',
-    createdAt: '2026-02-16T08:12:00.000Z'
-  }
-];
-
-let orders = [
-  {
-    id: 1,
-    items: [{ productId: 7, name: 'EchoPods Pro', quantity: 2, price: 139.99 }],
-    total: 279.98,
-    customer: 'Olivia M.',
-    status: 'shipped',
-    createdAt: '2026-02-12T15:17:00.000Z'
-  },
-  {
-    id: 2,
-    items: [{ productId: 4, name: 'Flux 4K Webcam', quantity: 1, price: 154.0 }],
-    total: 154.0,
-    customer: 'Noah K.',
-    status: 'processing',
-    createdAt: '2026-02-18T10:40:00.000Z'
-  }
-];
-
-let nextProductId = products.length + 1;
-let nextMessageId = messages.length + 1;
-let nextSubscriberId = subscribers.length + 1;
-let nextOrderId = orders.length + 1;
-
-const computeStats = () => {
-  const revenueValue = roundMoney(orders.reduce((sum, order) => sum + order.total, 0));
-  const uniqueCustomers = new Set(orders.map((order) => order.customer)).size;
-
-  return {
-    totalProducts: products.length,
-    totalSubscribers: subscribers.length,
-    totalMessages: messages.length,
-    totalOrders: orders.length,
-    revenueValue,
-    revenue: `$${revenueValue.toFixed(2)}`,
-    activeCustomers: uniqueCustomers
-  };
-};
-
-const sortProducts = (list, sort) => {
-  switch (sort) {
-    case 'price-asc':
-      return [...list].sort((a, b) => a.price - b.price);
-    case 'price-desc':
-      return [...list].sort((a, b) => b.price - a.price);
-    case 'rating':
-      return [...list].sort((a, b) => b.rating - a.rating);
-    case 'newest':
-      return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    default:
-      return list;
-  }
-};
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Products
+app.get('/api/products', (req, res) => {
+    const products = readData(PRODUCTS_FILE);
+    res.json(products);
 });
 
-app.get('/api/products', (req, res) => {
-  const { q = '', category = 'All', sort = 'newest' } = req.query;
-  const query = q.toString().trim().toLowerCase();
+app.get('/api/products/category/:category', (req, res) => {
+    const products = readData(PRODUCTS_FILE);
+    const filtered = products.filter(p => p.category === req.params.category);
+    res.json(filtered);
+});
 
-  const filtered = products.filter((product) => {
-    const categoryMatch = category === 'All' || category === '' || product.category === category;
-    const textMatch =
-      query === '' ||
-      product.name.toLowerCase().includes(query) ||
-      product.description.toLowerCase().includes(query) ||
-      product.category.toLowerCase().includes(query);
-
-    return categoryMatch && textMatch;
-  });
-
-  res.json(sortProducts(filtered, sort.toString()));
+app.get('/api/products/search', (req, res) => {
+    const products = readData(PRODUCTS_FILE);
+    const query = req.query.q?.toLowerCase();
+    if (!query) return res.json(products);
+    
+    const filtered = products.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        p.description.toLowerCase().includes(query)
+    );
+    res.json(filtered);
 });
 
 app.get('/api/products/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const product = products.find((item) => item.id === id);
-  if (!product) {
-    return res.status(404).json({ error: 'Product not found' });
-  }
-  return res.json(product);
+    const products = readData(PRODUCTS_FILE);
+    const product = products.find(p => p.id == req.params.id);
+    if (product) {
+        res.json(product);
+    } else {
+        res.status(404).json({ message: 'Product not found' });
+    }
 });
 
-app.get('/api/categories', (req, res) => {
-  const categories = ['All', ...new Set(products.map((product) => product.category))];
-  res.json(categories);
+app.post('/api/products', authenticateAdmin, (req, res) => {
+    const products = readData(PRODUCTS_FILE);
+    const newProduct = {
+        id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+        ...req.body,
+        rating: req.body.rating || 0,
+        reviews: req.body.reviews || 0,
+        inStock: req.body.inStock !== undefined ? req.body.inStock : true
+    };
+    products.push(newProduct);
+    writeData(PRODUCTS_FILE, products);
+    res.status(201).json(newProduct);
 });
 
-app.get('/api/featured', (req, res) => {
-  res.json(featuredCollections);
+app.put('/api/products/:id', authenticateAdmin, (req, res) => {
+    const products = readData(PRODUCTS_FILE);
+    const productIndex = products.findIndex(p => p.id == req.params.id);
+    if (productIndex !== -1) {
+        products[productIndex] = { ...products[productIndex], ...req.body };
+        writeData(PRODUCTS_FILE, products);
+        res.json(products[productIndex]);
+    } else {
+        res.status(404).json({ message: 'Product not found' });
+    }
 });
 
-app.post('/api/newsletter', (req, res) => {
-  const email = (req.body?.email || '').trim().toLowerCase();
-  if (!email || !isValidEmail(email)) {
-    return res.status(400).json({ error: 'A valid email is required' });
-  }
-
-  const exists = subscribers.some((subscriber) => subscriber.email === email);
-  if (exists) {
-    return res.status(200).json({ success: true, message: 'You are already subscribed', alreadySubscribed: true });
-  }
-
-  subscribers.unshift({
-    id: nextSubscriberId++,
-    email,
-    createdAt: new Date().toISOString()
-  });
-
-  return res.status(201).json({ success: true, message: 'Subscribed successfully', email });
+app.delete('/api/products/:id', authenticateAdmin, (req, res) => {
+    let products = readData(PRODUCTS_FILE);
+    const productIndex = products.findIndex(p => p.id == req.params.id);
+    if (productIndex !== -1) {
+        products.splice(productIndex, 1);
+        writeData(PRODUCTS_FILE, products);
+        res.json({ message: 'Product deleted' });
+    } else {
+        res.status(404).json({ message: 'Product not found' });
+    }
 });
 
-app.post('/api/contact', (req, res) => {
-  const name = (req.body?.name || '').trim();
-  const email = (req.body?.email || '').trim().toLowerCase();
-  const phone = (req.body?.phone || '').trim();
-  const subject = (req.body?.subject || '').trim();
-  const message = (req.body?.message || '').trim();
-
-  if (!name || !email || !message || !subject) {
-    return res.status(400).json({ error: 'Name, email, subject and message are required' });
-  }
-
-  if (!isValidEmail(email)) {
-    return res.status(400).json({ error: 'Please enter a valid email address' });
-  }
-
-  messages.unshift({
-    id: nextMessageId++,
-    name,
-    email,
-    phone,
-    subject,
-    message,
-    status: 'new',
-    createdAt: new Date().toISOString()
-  });
-
-  return res.status(201).json({ success: true, message: 'Message sent successfully' });
+// Users - Registration
+app.post('/api/auth/register', (req, res) => {
+    const users = readData(USERS_FILE);
+    const { name, email, password } = req.body;
+    
+    if (!name || !email || !password) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+    
+    const existingUser = users.find(u => u.email === email);
+    if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
+    }
+    
+    const newUser = {
+        id: uuidv4(),
+        name,
+        email,
+        password,
+        role: 'user',
+        createdAt: new Date()
+    };
+    users.push(newUser);
+    writeData(USERS_FILE, users);
+    
+    // Generate JWT token
+    const token = jwt.sign(
+        { id: newUser.id, email: newUser.email, name: newUser.name, role: 'user' },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+    );
+    
+    res.status(201).json({ 
+        message: 'User registered successfully',
+        token,
+        user: { id: newUser.id, name: newUser.name, email: newUser.email, role: 'user' }
+    });
 });
 
-app.post('/api/checkout', (req, res) => {
-  const items = Array.isArray(req.body?.items) ? req.body.items : [];
-
-  if (items.length === 0) {
-    return res.status(400).json({ error: 'Cart is empty' });
-  }
-
-  const normalizedItems = items
-    .map((item) => {
-      const product = products.find((productItem) => productItem.id === Number(item.id));
-      const quantity = Math.max(1, Number(item.quantity) || 1);
-      if (!product) return null;
-
-      return {
-        productId: product.id,
-        name: product.name,
-        quantity,
-        price: product.price
-      };
-    })
-    .filter(Boolean);
-
-  if (normalizedItems.length === 0) {
-    return res.status(400).json({ error: 'No valid items found in cart' });
-  }
-
-  const total = roundMoney(normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0));
-
-  const order = {
-    id: nextOrderId++,
-    items: normalizedItems,
-    total,
-    customer: 'Guest Customer',
-    status: 'processing',
-    createdAt: new Date().toISOString()
-  };
-
-  orders.unshift(order);
-
-  return res.status(201).json({
-    success: true,
-    message: 'Order placed successfully',
-    orderId: order.id,
-    total
-  });
+// Users - Login
+app.post('/api/auth/login', (req, res) => {
+    const users = readData(USERS_FILE);
+    const { email, password } = req.body;
+    
+    const user = users.find(u => u.email === email && u.password === password);
+    if (user) {
+        const token = jwt.sign(
+            { id: user.id, email: user.email, name: user.name, role: user.role || 'user' },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        res.json({ 
+            message: 'Login successful', 
+            token,
+            user: { id: user.id, name: user.name, email: user.email, role: user.role || 'user' }
+        });
+    } else {
+        res.status(401).json({ message: 'Invalid credentials' });
+    }
 });
 
-app.get('/api/stats', (req, res) => {
-  res.json(computeStats());
+// User Profile
+app.get('/api/user/profile', authenticateToken, (req, res) => {
+    const users = readData(USERS_FILE);
+    const user = users.find(u => u.id === req.user.id);
+    
+    if (user) {
+        const { password, ...userWithoutPassword } = user;
+        res.json(userWithoutPassword);
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
 });
 
-app.get('/api/admin/stats', (req, res) => {
-  const stats = computeStats();
-
-  const latestOrders = orders
-    .slice(0, 5)
-    .map((order) => ({ id: order.id, total: order.total, status: order.status, createdAt: order.createdAt }));
-
-  res.json({
-    ...stats,
-    latestOrders
-  });
+app.put('/api/user/profile', authenticateToken, (req, res) => {
+    const users = readData(USERS_FILE);
+    const userIndex = users.findIndex(u => u.id === req.user.id);
+    
+    if (userIndex !== -1) {
+        const { name, email, phone, address, country } = req.body;
+        users[userIndex] = { 
+            ...users[userIndex], 
+            name: name || users[userIndex].name,
+            email: email || users[userIndex].email,
+            phone: phone || users[userIndex].phone,
+            address: address || users[userIndex].address,
+            country: country || users[userIndex].country
+        };
+        writeData(USERS_FILE, users);
+        
+        const { password, ...userWithoutPassword } = users[userIndex];
+        res.json(userWithoutPassword);
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
 });
 
-app.get('/api/admin/products', (req, res) => {
-  res.json(products);
+app.put('/api/user/password', authenticateToken, (req, res) => {
+    const users = readData(USERS_FILE);
+    const userIndex = users.findIndex(u => u.id === req.user.id);
+    
+    if (userIndex !== -1) {
+        const { currentPassword, newPassword } = req.body;
+        
+        if (users[userIndex].password !== currentPassword) {
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+        
+        users[userIndex].password = newPassword;
+        writeData(USERS_FILE, users);
+        res.json({ message: 'Password updated successfully' });
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
 });
 
-app.post('/api/admin/products', (req, res) => {
-  const payload = req.body || {};
-  const name = (payload.name || '').trim();
-  const description = (payload.description || '').trim();
-  const image = (payload.image || '').trim();
-  const category = (payload.category || '').trim();
-  const price = Number(payload.price);
-  const stock = Number(payload.stock);
-  const rating = Number(payload.rating || 4.5);
-  const reviews = Number(payload.reviews || 0);
-
-  if (!name || !description || !image || !category || Number.isNaN(price)) {
-    return res.status(400).json({ error: 'Name, description, image, category and valid price are required' });
-  }
-
-  const newProduct = {
-    id: nextProductId++,
-    name,
-    description,
-    image,
-    category,
-    price: roundMoney(price),
-    rating: Number.isNaN(rating) ? 4.5 : rating,
-    reviews: Number.isNaN(reviews) ? 0 : reviews,
-    stock: Number.isNaN(stock) ? 0 : stock,
-    featured: Boolean(payload.featured),
-    createdAt: new Date().toISOString()
-  };
-
-  products.unshift(newProduct);
-  return res.status(201).json(newProduct);
+// User Orders
+app.get('/api/user/orders', authenticateToken, (req, res) => {
+    const orders = readData(ORDERS_FILE);
+    const userOrders = orders.filter(o => o.userId === req.user.id);
+    res.json(userOrders);
 });
 
-app.put('/api/admin/products/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const index = products.findIndex((product) => product.id === id);
-
-  if (index === -1) {
-    return res.status(404).json({ error: 'Product not found' });
-  }
-
-  const existing = products[index];
-  const payload = req.body || {};
-  const nextPrice = payload.price !== undefined ? Number(payload.price) : existing.price;
-  const nextStock = payload.stock !== undefined ? Number(payload.stock) : existing.stock;
-  const nextRating = payload.rating !== undefined ? Number(payload.rating) : existing.rating;
-  const nextReviews = payload.reviews !== undefined ? Number(payload.reviews) : existing.reviews;
-
-  const updated = {
-    ...existing,
-    ...payload,
-    id,
-    price: Number.isNaN(nextPrice) ? existing.price : roundMoney(nextPrice),
-    stock: Number.isNaN(nextStock) ? existing.stock : nextStock,
-    rating: Number.isNaN(nextRating) ? existing.rating : nextRating,
-    reviews: Number.isNaN(nextReviews) ? existing.reviews : nextReviews
-  };
-
-  products[index] = updated;
-  return res.json(updated);
+// Orders - Checkout
+app.post('/api/orders', authenticateToken, (req, res) => {
+    const orders = readData(ORDERS_FILE);
+    const { items, shipping, payment, total } = req.body;
+    
+    if (!items || items.length === 0) {
+        return res.status(400).json({ message: 'Cart is empty' });
+    }
+    
+    const newOrder = {
+        id: uuidv4(),
+        userId: req.user.id,
+        userName: req.user.name,
+        userEmail: req.user.email,
+        items,
+        shipping,
+        payment,
+        total,
+        status: 'pending',
+        paymentStatus: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+    };
+    
+    orders.push(newOrder);
+    writeData(ORDERS_FILE, orders);
+    
+    res.status(201).json({ 
+        message: 'Order placed successfully',
+        order: newOrder
+    });
 });
 
-app.delete('/api/admin/products/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const exists = products.some((product) => product.id === id);
-
-  if (!exists) {
-    return res.status(404).json({ error: 'Product not found' });
-  }
-
-  products = products.filter((product) => product.id !== id);
-  return res.status(204).send();
+// Guest Checkout
+app.post('/api/orders/guest', (req, res) => {
+    const orders = readData(ORDERS_FILE);
+    const { items, shipping, payment, total, email } = req.body;
+    
+    if (!items || items.length === 0) {
+        return res.status(400).json({ message: 'Cart is empty' });
+    }
+    
+    const newOrder = {
+        id: uuidv4(),
+        userId: 'guest',
+        userName: shipping.firstName + ' ' + shipping.lastName,
+        userEmail: email,
+        items,
+        shipping,
+        payment,
+        total,
+        status: 'pending',
+        paymentStatus: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+    };
+    
+    orders.push(newOrder);
+    writeData(ORDERS_FILE, orders);
+    
+    res.status(201).json({ 
+        message: 'Order placed successfully',
+        order: newOrder
+    });
 });
 
-app.get('/api/admin/messages', (req, res) => {
-  res.json(messages);
+app.get('/api/orders', authenticateToken, (req, res) => {
+    const orders = readData(ORDERS_FILE);
+    
+    // If admin, return all orders
+    if (req.user.role === 'admin') {
+        return res.json(orders);
+    }
+    
+    // If user, return only their orders
+    const userOrders = orders.filter(o => o.userId === req.user.id);
+    res.json(userOrders);
 });
 
-app.patch('/api/admin/messages/:id/status', (req, res) => {
-  const id = Number(req.params.id);
-  const status = (req.body?.status || '').trim().toLowerCase();
-  const validStatuses = ['new', 'in-progress', 'resolved'];
-
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ error: 'Invalid status value' });
-  }
-
-  const index = messages.findIndex((message) => message.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: 'Message not found' });
-  }
-
-  messages[index] = { ...messages[index], status };
-  return res.json(messages[index]);
+app.get('/api/orders/:id', authenticateToken, (req, res) => {
+    const orders = readData(ORDERS_FILE);
+    const order = orders.find(o => o.id === req.params.id);
+    
+    if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+    }
+    
+    // Check if user owns the order or is admin
+    if (order.userId !== req.user.id && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    res.json(order);
 });
 
-app.get('/api/admin/subscribers', (req, res) => {
-  res.json(subscribers);
+app.put('/api/orders/:id', authenticateAdmin, (req, res) => {
+    const orders = readData(ORDERS_FILE);
+    const orderIndex = orders.findIndex(o => o.id === req.params.id);
+    
+    if (orderIndex !== -1) {
+        orders[orderIndex] = { 
+            ...orders[orderIndex], 
+            ...req.body,
+            updatedAt: new Date()
+        };
+        writeData(ORDERS_FILE, orders);
+        res.json(orders[orderIndex]);
+    } else {
+        res.status(404).json({ message: 'Order not found' });
+    }
 });
 
-app.get('/api/admin/orders', (req, res) => {
-  res.json(orders);
+// Admin routes
+app.post('/api/admin/login', (req, res) => {
+    const { email, password } = req.body;
+    
+    if (email === 'admin@shopeasy.com' && password === 'admin123') {
+        const token = jwt.sign(
+            { id: 'admin', email, name: 'Admin', role: 'admin' },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+        
+        res.json({ 
+            message: 'Admin login successful',
+            token,
+            user: { id: 'admin', email, name: 'Admin', role: 'admin' }
+        });
+    } else {
+        res.status(401).json({ message: 'Invalid admin credentials' });
+    }
 });
 
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
+app.get('/api/admin/stats', authenticateAdmin, (req, res) => {
+    const products = readData(PRODUCTS_FILE);
+    const users = readData(USERS_FILE);
+    const orders = readData(ORDERS_FILE);
+    
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    const completedOrders = orders.filter(o => o.status === 'delivered').length;
+    
+    const recentOrders = orders.slice(-10).reverse();
+    
+    // Calculate category distribution
+    const categoryStats = {};
+    products.forEach(p => {
+        categoryStats[p.category] = (categoryStats[p.category] || 0) + 1;
+    });
+    
+    // Calculate top selling products
+    const productSales = {};
+    orders.forEach(order => {
+        order.items.forEach(item => {
+            productSales[item.name] = (productSales[item.name] || 0) + item.quantity;
+        });
+    });
+    
+    const topProducts = Object.entries(productSales)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    
+    const stats = {
+        totalProducts: products.length,
+        totalOrders: orders.length,
+        totalUsers: users.length,
+        totalRevenue,
+        pendingOrders,
+        completedOrders,
+        categoryStats,
+        topProducts,
+        recentOrders
+    };
+    res.json(stats);
+});
+
+// Admin - Get all users
+app.get('/api/admin/users', authenticateAdmin, (req, res) => {
+    const users = readData(USERS_FILE);
+    const usersWithoutPassword = users.map(({ password, ...user }) => user);
+    res.json(usersWithoutPassword);
+});
+
+// Admin - Delete user
+app.delete('/api/admin/users/:id', authenticateAdmin, (req, res) => {
+    let users = readData(USERS_FILE);
+    const userIndex = users.findIndex(u => u.id === req.params.id);
+    
+    if (userIndex !== -1) {
+        users.splice(userIndex, 1);
+        writeData(USERS_FILE, users);
+        res.json({ message: 'User deleted successfully' });
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
+});
+
+// JWT Authentication Middleware
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ message: 'Access token required' });
+    }
+    
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid or expired token' });
+        }
+        req.user = user;
+        next();
+    });
+};
+
+// Admin Authentication Middleware
+const authenticateAdmin = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ message: 'Access token required' });
+    }
+    
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid or expired token' });
+        }
+        if (user.role !== 'admin') {
+            return res.status(403).json({ message: 'Admin access required' });
+        }
+        req.user = user;
+        next();
+    });
+};
+
+// Serve frontend pages - specific routes first
+app.get('/index.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+});
+
+app.get('/checkout.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'checkout.html'));
+});
+
+app.get('/profile.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'profile.html'));
+});
+
+app.get('/order-confirmation.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'order-confirmation.html'));
+});
+
+app.get('/about.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'about.html'));
+});
+
+app.get('/contact.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'contact.html'));
+});
+
+// Admin routes
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'admin', 'admin-login.html'));
+});
+
+app.get('/admin/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'admin', 'admin-dashboard.html'));
+});
+
+// Default route - serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`ShopEasy E-Commerce Server running on http://localhost:${PORT}`);
+    console.log(`Admin Panel: http://localhost:${PORT}/admin`);
+    console.log(`API Endpoint: http://localhost:${PORT}/api`);
 });

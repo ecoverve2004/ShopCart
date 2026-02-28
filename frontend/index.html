@@ -1,15 +1,311 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="CampusCart helps students discover curated tech for class, content, and campus life.">
-    <title>ShopCart | Student Tech Marketplace</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopEasy - Your Complete E-Commerce Solution | WooCommerce | E-Commerce</title>
+    <meta name="description" content="ShopEasy - The best e-commerce platform. Shop online with ease. WooCommerce ready, complete e-commerce solution for all your shopping needs.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>ShopEasy</h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="#products" class="nav-link">Products</a>
+                <a href="features.html" class="nav-link">Features</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+                <a href="faq.html" class="nav-link">FAQ</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+            </div>
+            <div class="nav-icons">
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Search products...">
+                    <button id="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                <a href="#" class="icon-btn" id="wishlist-btn">
+                    <i class="fas fa-heart"></i>
+                    <span class="badge" id="wishlist-count">0</span>
+                </a>
+                <a href="#" class="icon-btn" id="cart-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="badge" id="cart-count">0</span>
+                </a>
+                <a href="profile.html" class="icon-btn" id="user-btn">
+                    <i class="fas fa-user"></i>
+                </a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Welcome to ShopEasy</h1>
+            <p>Your Complete E-Commerce Solution - WooCommerce Powered Online Shopping</p>
+            <button class="cta-button" id="shop-now-btn">Shop Now</button>
+        </div>
+    </section>
+
+    <!-- Featured Categories -->
+    <section class="categories" id="categories">
+        <h2>Shop by Category</h2>
+        <div class="category-grid">
+            <div class="category-card" data-category="electronics">
+                <img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500" alt="Electronics">
+                <h3>Electronics</h3>
+            </div>
+            <div class="category-card" data-category="fashion">
+                <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=500" alt="Fashion">
+                <h3>Fashion</h3>
+            </div>
+            <div class="category-card" data-category="home">
+                <img src="https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=500" alt="Home">
+                <h3>Home & Living</h3>
+            </div>
+            <div class="category-card" data-category="books">
+                <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500" alt="Books">
+                <h3>Books</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products" class="products">
+        <h2>Featured Products</h2>
+        <div class="filter-container">
+            <select id="sort-select">
+                <option value="default">Sort by</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+                <option value="newest">Newest First</option>
+            </select>
+            <div class="price-filter">
+                <label>Price Range: $<span id="price-value">1000</span></label>
+                <input type="range" id="price-range" min="0" max="1000" value="1000">
+            </div>
+        </div>
+        <div class="product-grid" id="product-grid">
+            <!-- Products will be loaded here by JavaScript -->
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2>Why Choose ShopEasy?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-shipping-fast"></i>
+                    <h3>Fast Shipping</h3>
+                    <p>Free delivery on orders over $100</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Secure Payment</h3>
+                    <p>100% secure payment processing</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-undo"></i>
+                    <h3>Easy Returns</h3>
+                    <p>30-day return policy</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-headset"></i>
+                    <h3>24/7 Support</h3>
+                    <p>Round-the-clock customer support</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <h2>Stay Updated</h2>
+        <p>Subscribe to our newsletter for exclusive deals and new arrivals</p>
+        <form id="newsletter-form">
+            <label for="newsletter-email-main" class="visually-hidden">Email for newsletter</label>
+            <input type="email" id="newsletter-email-main" placeholder="Enter your email" required>
+            <button type="submit">Subscribe</button>
+        </form>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>ShopEasy</h3>
+                <p>Your trusted e-commerce platform - WooCommerce powered online shopping solution</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="#products">Products</a></li>
+                    <li><a href="features.html">Features</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>E-Commerce</h3>
+                <ul>
+                    <li><a href="profile.html">My Account</a></li>
+                    <li><a href="profile.html">Track Order</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">Shipping</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <p><i class="fas fa-phone"></i> +91 234 567 8900</p>
+                <p><i class="fas fa-envelope"></i> support@shopeasy.com</p>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Shopping Street, NY 10001</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 ShopEasy - E-Commerce | WooCommerce | Online Shopping. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Shopping Cart</h2>
+            <div id="cart-items"></div>
+            <div class="cart-total">
+                <h3>Total: $<span id="cart-total">0</span></h3>
+                <button class="checkout-btn" onclick="window.location.href='checkout.html'">Proceed to Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wishlist Modal -->
+    <div id="wishlist-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Your Wishlist</h2>
+            <div id="wishlist-items"></div>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-detail-modal" class="modal">
+        <div class="modal-content large">
+            <span class="close">&times;</span>
+            <div id="product-detail-content"></div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="login-email" class="visually-hidden">Email</label>
+                <input type="email" id="login-email" placeholder="Email" required>
+                <label for="login-password" class="visually-hidden">Password</label>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <a href="#" id="show-register-link">Register here</a></p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Register</h2>
+            <form id="register-form">
+                <label for="register-name" class="visually-hidden">Full Name</label>
+                <input type="text" id="register-name" placeholder="Full Name" required>
+                <label for="register-email" class="visually-hidden">Email</label>
+                <input type="email" id="register-email" placeholder="Email" required>
+                <label for="register-password" class="visually-hidden">Password</label>
+                <input type="password" id="register-password" placeholder="Password" required>
+                <label for="register-confirm-password" class="visually-hidden">Confirm Password</label>
+                <input type="password" id="register-confirm-password" placeholder="Confirm Password" required>
+                <button type="submit">Register</button>
+            </form>
+            <p>Already have an account? <a href="#" id="show-login-link">Login here</a></p>
+        </div>
+    </div>
+
+    <script src="js/products.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script><!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="login-email" class="visually-hidden">Email</label>
+                <input type="email" id="login-email" placeholder="Email" required>
+                <label for="login-password" class="visually-hidden">Password</label>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <a href="#" id="show-register-link">Register here</a></p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Register</h2>
+            <form id="register-form">
+                <label for="register-name" class="visually-hidden">Full Name</label>
+                <input type="text" id="register-name" placeholder="Full Name" required>
+                <label for="register-email" class="visually-hidden">Email</label>
+                <input type="email" id="register-email" placeholder="Email" required>
+                <label for="register-password" class="visually-hidden">Password</label>
+                <input type="password" id="register-password" placeholder="Password" required>
+                <label for="register-confirm-password" class="visually-hidden">Confirm Password</label>
+                <input type="password" id="register-confirm-password" placeholder="Confirm Password" required>
+                <button type="submit">Register</button>
+            </form>
+            <p>Already have an account? <a href="#" id="show-login-link">Login here</a></p>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-detail-modal" class="modal">
+        <div class="modal-content large">
+            <span class="close">&times;</span>
+            <div id="product-detail-content"></div>
+        </div>
+    </div>
+
+    <script src="js/products.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

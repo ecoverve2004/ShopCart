@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed - ShopEasy E-Commerce | WooCommerce</title>
+    <meta name="description" content="Order confirmation on ShopEasy e-commerce platform. Track your WooCommerce purchase.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        .confirmation-container {
+            max-width: 800px;
+            margin: 100px auto 40px;
+            padding: 40px;
+            text-align: center;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        
+        .success-icon i {
+            font-size: 3rem;
+            color: white;
+        }
+        
+        .confirmation-container h1 {
+            color: #28a745;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .order-number {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        
+        .order-number span {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 1.2rem;
+        }
+        
+        .confirmation-details {
+            text-align: left;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .confirmation-details h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-row .label {
+            color: #666;
+        }
+        
+        .detail-row .value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .order-items {
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .order-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .order-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .order-item-info {
+            flex: 1;
+        }
+        
+        .order-item-info h4 {
+            margin-bottom: 5px;
+        }
+        
+        .order-item-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .print-btn {
+            background: #6c757d;
+            color: white;
+            margin-top: 20px;
+        }
+        
+        .print-btn:hover {
+            background: #545b62;
+        }
+        
+        @media (max-width: 600px) {
+            .confirmation-container {
+                margin: 80px 20px 20px;
+                padding: 20px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>ShopEasy</h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="index.html#products" class="nav-link">Products</a>
+                <a href="features.html" class="nav-link">Features</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+                <a href="faq.html" class="nav-link">FAQ</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+            </div>
+            <div class="nav-icons">
+                <a href="index.html#cart-btn" class="icon-btn" id="cart-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="badge" id="cart-count">0</span>
+                </a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="confirmation-container">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        
+        <h1>Thank You!</h1>
+        <p>Your order has been placed successfully.</p>
+        
+        <div class="order-number">
+            Order ID: <span id="order-id">Loading...</span>
+        </div>
+        
+        <div class="confirmation-details">
+            <h3><i class="fas fa-shipping-fast"></i> Shipping Details</h3>
+            <div class="detail-row">
+                <span class="label">Name:</span>
+                <span class="value" id="customer-name">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Email:</span>
+                <span class="value" id="customer-email">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Address:</span>
+                <span class="value" id="customer-address">-</span>
+            </div>
+        </div>
+        
+        <div class="confirmation-details">
+            <h3><i class="fas fa-box"></i> Order Items</h3>
+            <div class="order-items" id="order-items">
+                <!-- Items will be loaded here -->
+            </div>
+        </div>
+        
+        <div class="confirmation-details">
+            <h3><i class="fas fa-receipt"></i> Order Summary</h3>
+            <div class="detail-row">
+                <span class="label">Subtotal:</span>
+                <span class="value" id="order-subtotal">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Shipping:</span>
+                <span class="value" id="order-shipping">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Tax:</span>
+                <span class="value" id="order-tax">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Payment Method:</span>
+                <span class="value" id="order-payment">-</span>
+            </div>
+            <div class="detail-row" style="font-size: 1.2rem; margin-top: 10px;">
+                <span class="label">Total:</span>
+                <span class="value" id="order-total" style="color: #007bff;">-</span>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="index.html" class="btn btn-primary">
+                <i class="fas fa-home"></i> Continue Shopping
+            </a>
+            <a href="#" onclick="window.print()" class="btn btn-success">
+                <i class="fas fa-print"></i> Print Receipt
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function loadOrderDetails() {
+            const order = JSON.parse(localStorage.getItem('lastOrder') || 'null');
+            
+            if (!order) {
+                document.querySelector('.confirmation-container').innerHTML = `
+                    <div class="success-icon" style="background: #dc3545;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h1>No Order Found</h1>
+                    <p>We couldn't find your order details.</p>
+                    <a href="index.html" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Go to Home
+                    </a>
+                `;
+                return;
+            }
+            
+            document.getElementById('order-id').textContent = order.id.substring(0, 8).toUpperCase();
+            document.getElementById('customer-name').textContent = `${order.shipping.firstName} ${order.shipping.lastName}`;
+            document.getElementById('customer-email').textContent = order.userEmail || order.email;
+            document.getElementById('customer-address').textContent = `${order.shipping.address}, ${order.shipping.city}, ${order.shipping.zipCode}, ${order.shipping.country}`;
+            
+            const itemsContainer = document.getElementById('order-items');
+            itemsContainer.innerHTML = order.items.map(item => `
+                <div class="order-item">
+                    <img src="${item.image}" alt="${item.name}">
+                    <div class="order-item-info">
+                        <h4>${item.name}</h4>
+                        <p>Qty: ${item.quantity} × $${item.price.toFixed(2)}</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            const subtotal = order.total * 0.9;
+            const shipping = order.total * 0.05;
+            const tax = order.total * 0.05;
+            
+            document.getElementById('order-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('order-shipping').textContent = `$${shipping.toFixed(2)}`;
+            document.getElementById('order-tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('order-payment').textContent = order.payment?.method || 'Card';
+            document.getElementById('order-total').textContent = `$${order.total.toFixed(2)}`;
+            
+            // Update cart count
+            document.getElementById('cart-count').textContent = '0';
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadOrderDetails);
+    </script>
+</body>
+</html>
